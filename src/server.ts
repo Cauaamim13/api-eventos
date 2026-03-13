@@ -1,14 +1,16 @@
-import express from 'express';
+import express, { type Request, type Response } from 'express';
 
 const app = express();
-const port = 3000;
-
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('API de Eventos');
+app.get('/teste', (req: Request, res: Response) => {
+    return res.json({ 
+        mensagem: "Fala! Nossa API está no ar!",
+        status: "Sucesso"
+    });
 });
 
-app.listen(port, () => {
-  console.log(`Servidor rodando na porta ${port}`);
+const PORTA = 3333;
+app.listen(PORTA, () => {
+    console.log(`Servidor rodando perfeitamente na porta ${PORTA}`);
 });
