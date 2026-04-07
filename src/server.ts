@@ -46,6 +46,30 @@ app.post('/clientes', async(req:Request, res: Response) =>
 }
 });
 
+app.post('/contratos', async (req: Request, res: Response) => {
+    try {
+        const { cliente_id, tipo_evento, data_evento, valor_total } = req.body;
+
+        if (!cliente_id || !tipo_evento || !data_evento || !valor_total) {
+            return res.status(400).json({ erro: "Todos os campos de contrato são obrigatórios"})
+        }
+
+        const comandoSQL = 'INSERT INTO contratos (cliente_id, tipo_evento, data_evento, valor_total) VALUES (?, ?, ?, ?)';
+
+        const dados = [cliente_id, tipo_evento, data_evento, valor_total]; 
+    
+        const [resultado] = await db.query(comandoSQL, dados);
+
+        return res.status(201).json({
+            mensagem: 'Contrato gerado com sucesso',
+            resultado
+        });
+    } catch (erro) {
+        console.error ('Erro ao gerar contratos', erro);
+        return res.status(500).json({erro: 'Falha ao gerar contato no banco'});
+    }
+});
+
 const PORTA = 3333;
 app.listen(PORTA, () => {
     console.log(`Servidor rodando perfeitamente na porta ${PORTA}`);
