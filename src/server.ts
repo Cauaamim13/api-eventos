@@ -70,6 +70,71 @@ app.post('/contratos', async (req: Request, res: Response) => {
     }
 });
 
+app.post('/parcelas', async (req: Request, res: Response) => {
+    try {
+        const { contrato_id, valor_parcela, data_vencimento } = req.body;
+
+        if (!contrato_id || !valor_parcela || !data_vencimento) {
+
+            return res.status(400).json({erro: "ID do contrato, valor e data de vencimento são obrigatórios!"})
+        }
+
+        const comandoSQL = 'INSERT INTO parcelas (contrato_id, valor_parcela, data_vencimento) VALUES (?,?,?)';
+        const valores = [contrato_id, valor_parcela, data_vencimento];
+
+        const [resultado] = await db.query(comandoSQL, valores);
+
+        return res.status(201).json({
+            mensagem: "Parcela registrada com sucesso!",
+            resultado
+        });
+    } catch (erro) {
+        console.error("Erro ao gerar parcela", erro);
+        return res.status(500).json({ erro: "Falha ao registrar a parcela no banco"});
+    }
+
+});
+
+app.get('/clientes/:id/relatorio', async (req: Request, res: Response) => {
+    try {
+        const id_do_cliente = req.params.id;
+
+        const comandosSQL = `
+        
+        SELECT 
+            c.nome_completo,
+            c.cpf,
+            ct.tipo_evento,
+            ct.data_evento,
+            ct.valor_total,
+            p.valor_parcela,
+            p.data_vencimento,
+            p.foi_pago
+        FROM clientes c 
+        INNER JOIN contratos ct ON c.id = ct.cliente_id
+        INNER JOIN parcelas p ON ct.id = p.contrato_id
+        WHERE c.id = ?    
+        `;
+
+        
+        const [resultado] = await db.query(comandosSQL, [id_do_cliente]);
+
+        if ((resultado as any[]).length === 0) {
+            return res.status(404).json({
+                mensagem:"Nenhum relatório encontrado. Verifique se o cliente possui contratos e parcelas geradas."
+            });
+        }
+
+        return res.status(200).json ({
+            mensagem:"Relatório gerado com sucesso!",
+            relatorio: resultado
+        });
+    } catch (erro) {
+        console.error("Erro ao gerar relatório:", erro);
+        return res.status(500).json({ erro: "Falha interna do servidor ao cruzar os dados"})
+    }
+});
+
 const PORTA = 3333;
 app.listen(PORTA, () => {
     console.log(`Servidor rodando perfeitamente na porta ${PORTA}`);
