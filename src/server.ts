@@ -13,7 +13,7 @@ app.get('/banco', async (req: Request, res: Response) => {
             dados: clientes 
         });
     } catch (erro) {
-        console.error("Deu ruim no banco:", erro);
+        console.error("Falha no banco:", erro);
         return res.status(500).json({ erro: "Falha na conexão com o banco" });
     }
 });
@@ -132,6 +132,55 @@ app.get('/clientes/:id/relatorio', async (req: Request, res: Response) => {
     } catch (erro) {
         console.error("Erro ao gerar relatório:", erro);
         return res.status(500).json({ erro: "Falha interna do servidor ao cruzar os dados"})
+    }
+});
+
+//rota PATCH para dar baixa em uma parcela
+
+app.patch('/parcelas/:id/pagar', async (req: Request, res: Response) => {
+    try {
+        const id_da_parcela = req.params.id;
+
+        // 2. O comando SQL para atualizar apenas a coluna "foi_pago"
+
+        const comandoSQL = "UPDATE parcelas SET foi_pago = TRUE WHERE id = ?";
+
+        const [resultado] = await db.query (comandoSQL, [id_da_parcela]);
+
+        //o banco encontrou a parcela para atualizar?
+
+        if ((resultado as any).affectedRows === 0) {
+            return res.status(404).json({erro: "Parcela não encontrada no sistema!"});
+        }
+        return res.status(200).json({
+            mensagem: "Pagamento realizado com sucesso!"
+        });
+    } catch (erro) {
+        console.error ("Erro ao registrar pagamento:", erro);
+        return res.status(500).json({erro: "Falha interna ao atualizar parcela."})
+    }
+});
+
+app.delete ('/parcelas/:id', async (req: Request, res: Response) => {
+    try {
+        const id_da_parcela = req.params.id;
+
+        const comandoSQL = 'DELETE from parcelas WHERE id = ?';
+        const [resultado] = await db.query (comandoSQL, [id_da_parcela]);
+
+    // o banco encontrou e apagou a linha?
+    
+    if ((resultado as any).affectedRows === 0) {
+        return res.status(404).json({erro: "Parcela não encontrada para exclusão!"});
+    }
+
+    return res.status(200).json({
+        mensagem: "Parcela excluida com sucesso do Sistema"
+    });
+
+    } catch (erro) {
+        console.error("Erro ao excluir parcela:", erro);
+        return res.status(500).json({erro: "Falha interna ao tentar excluir parcela."});
     }
 });
 
