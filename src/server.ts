@@ -1,7 +1,9 @@
 import express, { type Request, type Response } from 'express';
+import cors from 'cors';
 import db from './database/connection.js';
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 
