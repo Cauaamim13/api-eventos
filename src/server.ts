@@ -143,7 +143,7 @@ app.patch('/parcelas/:id/pagar', async (req: Request, res: Response) => {
     try {
         const id_da_parcela = req.params.id;
 
-        // 2. O comando SQL para atualizar apenas a coluna "foi_pago"
+        // O comando SQL para atualizar apenas a coluna "foi_pago"
 
         const comandoSQL = "UPDATE parcelas SET foi_pago = TRUE WHERE id = ?";
 
@@ -184,6 +184,28 @@ app.delete ('/parcelas/:id', async (req: Request, res: Response) => {
         console.error("Erro ao excluir parcela:", erro);
         return res.status(500).json({erro: "Falha interna ao tentar excluir parcela."});
     }
+});
+
+app.delete ('/banco/:id', async (req: Request, res: Response) =>
+{
+    try {
+    const { id } = req.params;
+    const comandosSQL = "DELETE FROM clientes WHERE id = ?";
+
+    const [resultado] = await db.query (comandosSQL, [id]);
+
+    if ((resultado as any).affectedRows === 0) {
+            return res.status(404).json({ erro: "Cliente não encontrado!" });
+        };
+
+        return res.status(202).json({
+            mensagem: "Cliente excluido com sucesso!"
+        }); 
+        } catch (erro) {
+        console.error("Erro ao excluir cliente:", erro);
+        return res.status(500).json({ erro: "Falha interna ao tentar excluir o cliente." });
+    };
+
 });
 
 const PORTA = 3333;
